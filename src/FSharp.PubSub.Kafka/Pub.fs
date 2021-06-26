@@ -28,7 +28,7 @@ module Pub =
             }
         }
         
-    let ofProducer<'T> (p: IProducer<string, string>) = produceF<'T> p
+    let producer<'T> (p: IProducer<string, string>) = produceF<'T> p
 
     let forTopic<'T> (topic: string) (p: Producer<'T>) = p topic
 
