@@ -1,5 +1,6 @@
+<img src="/images/Fsharp_logo.png" width="150">
+
 # FSharp.PubSub
-![FSharp Logo](/images/logo.png)
 
 Functional-first fsharp pub sub library.
 FSharp.PubSub uses partial application fo functions to provide fluent builder-like interface for message queues publishing (Pub) and subscribing (Sub).
