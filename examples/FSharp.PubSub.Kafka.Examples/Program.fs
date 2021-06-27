@@ -1,18 +1,16 @@
-﻿open System.Reactive.Linq
-open System.Threading
+﻿open System.Threading
 open Confluent.Kafka
+open FSharp.Control.Reactive
 open FSharp.PubSub.Kafka
+open FSharp.Control.Reactive.Builders
 
 type PlayersTopic = {
         Id: string
         Name: string
     }
 
-[<EntryPoint>]
-let main argv =
-    
+let testProducer () =
     let producer = ProducerBuilder<string, string>(ProducerConfig()).Build()
-        
     producer
         |> Pub.producer 
         |> Pub.forTopic "test-topic"
@@ -38,20 +36,38 @@ let main argv =
         |> Async.RunSynchronously
         |> ignore
     
+let consumerTest() =
     let consumer = ConsumerBuilder<string, string>(ConsumerConfig()).Build()
     
-    let subscription
-        = consumer
+    consumer
         |> Sub.consumer<PlayersTopic>
         |> Sub.ofTopic "test-topic"
-        |> Sub.subscribe CancellationToken.None
-        
-    snd subscription
+        |> Sub.asObservable CancellationToken.None
         |> Observable.map(fun msg ->
-            printfn $"Name = %s{msg.Value.Name}" 
-            msg.TopicPartitionOffset
+            match msg with
+            | Ok ok -> 
+                printfn $"Name = %s{ok.Value.Name}" 
+                ok |> Some
+            | _ -> None
             )
-        |> Observable.subscribe (fst subscription).CommitHandler
-        |> ignore
+        |> Observable.subscribe (fun opt ->
+            match opt with
+            | Some m -> Sub.commit m
+            | _ -> ())
+
+[<EntryPoint>]
+let main argv =
     
-    0 
+    let observable = observe {
+        yield 1
+        printfn "1"
+        
+        yield 2
+        printfn "2"
+    }
+    
+    observable
+    |> Observable.subscribe (fun x -> printfn $"Consumed: {x}")
+    |> Disposable.dispose
+    
+    0
